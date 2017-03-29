@@ -1,13 +1,13 @@
 <?php
  class Cuisine
  {
-    private $id;
     private $type;
+    private $id;
 
-        function __construct($id=null, $type)
+        function __construct($type, $id=null)
         {
-          $this->id = $id;
           $this->type = $type;
+          $this->id = $id;
         }
 
         function setType($new_type)
@@ -34,6 +34,28 @@
                 return false;
             }
         }
+
+        static function getAll()
+        {
+            $returned = $GLOBALS['DB']->query("SELECT * FROM cuisines;");
+            $cuisines = array();
+            foreach ($returned as $cuisine)
+                {
+                    $id = $cuisine['id'];
+                    $type = $cuisine['type'];
+                    $new_cuisine = new Cuisine($type, $id);
+                    array_push($cuisines, $new_cuisine);
+                }
+            return $cuisines;
+        }
+
+        static function deleteAll()
+        {
+            $GLOBALS['DB']->exec("DELETE FROM cuisines;");
+        }
+
+
+
 
 
 
