@@ -54,10 +54,17 @@
             $GLOBALS['DB']->exec("DELETE FROM cuisines;");
         }
 
-
-
-
-
-
+        static function find($id)
+        {
+            $found_cuisine = null;
+            $returned = $GLOBALS['DB']->prepare("SELECT * FROM cuisines WHERE id = :id;");
+            $returned->bindParam(':id', $id, PDO::PARAM_STR);
+            $returned->execute();
+            $result = $returned->fetch(PDO::FETCH_ASSOC);
+            if($result['id'] == $id ){
+              $found_cuisine = new Cuisine($result['type'], $result['id']);
+              return $found_cuisine;
+            }
+        }
  }
 ?>

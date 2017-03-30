@@ -6,7 +6,7 @@
         private $cuisine_id;
         private $id;
 
-        function __construct($name, $location, $cuisine_id = null, $id = null)
+        function __construct($name, $location, $cuisine_id, $id = null)
         {
             $this->name = $name;
             $this->location = $location;
@@ -42,7 +42,7 @@
 
         function save()
         {
-            $executed = $GLOBALS['DB']->exec("INSERT INTO restaurantz (name, location, cuisine_id) VALUES ('{$this->getName()}','{$this->getLocation()}','{$this->getCuisineId()}');");
+            $executed = $GLOBALS['DB']->exec("INSERT INTO restaurantz (name, location, cuisine_id) VALUES ('{$this->getName()}','{$this->getLocation()}', {$this->getCuisineId()})");
             if($executed){
               $this->id = $GLOBALS['DB']->lastInsertId();
               return true;
@@ -50,6 +50,7 @@
               return false;
             }
         }
+
         static function getAll()
         {
             $returned = $GLOBALS['DB']->query("SELECT * FROM restaurantz;");
@@ -71,37 +72,42 @@
             $GLOBALS['DB']->exec("DELETE FROM restaurantz;");
         }
 
+        static function getRestaurants($search_cuisine)
+        {
+          $returned = $GLOBALS['DB']->prepare("SELECT * FROM restaurantz WHERE cuisine_id = :id");
+          $returned->bindParam(':id', $search_cuisine, PDO::PARAM_STR);
+          $returned->execute();
+          $results = $returned->fetch(PDO::FETCH_ASSOC);
+          if ($results['cuisine_id'] == $search_cuisine) {
+                $found_restaurant = new Restaurant($results['name'], $results['location'], $results['cuisine_id'], $results['id']);
+               }
+           return $found_restaurant;
+        }
+
+        function findCuisines()
+        {
+            $found_cuisine = Array();
+            $returned = $GLOBALS['DB']->prepare("SELECT * FROM cuisines WHERE id = {$this->getCuisineId()};");
+            $returned->execute();
+            foreach($returned as $cuisine) {
+              $cuisine_id = $cuisine['id'];
+              $type = $cuisine['type'];
+              $new_cuisine = new Cuisine($type, $cuisine_id);
+              array_push($found_cuisine, $new_cuisine);
+            }
+            return $found_cuisine;
+        }
         static function find($id)
         {
-          $found_restaurant = null;
-          $returned = $GLOBALS['DB']->prepare("SELECT * FROM restaurantz WHERE id = :id;");
-          $returned->bindParam(':id', $id, PDO::PARAM_STR);
-          $returned->execute();
-          $result = $returned->fetch(PDO::FETCH_ASSOC);
-          if ($result['id'] == $id){
-            $found_restaurant = new Restaurant($result['name'],$result['location'], $result['cuisine_id']);
-          }
-          return $found_restaurant;
-        }
-
-        static function getRestaurants($cuisine)
-        {
-          $found_restaurant = array();
-          $returned = $GLOBALS['DB']->prepare("SELECT * FROM restaurantz WHERE cuisine_id = :cuisine_id;");
-          $returned->bindParam(':cuisine_id', $cuisine, PDO::PARAM_STR);
-          $returned->execute();
-          $result = $returned->fetchAll(PDO::FETCH_ASSOC);
-          foreach($result as $restaurant)
-          {
-              $restaurant = new Restaurant($restaurant['name'], $restaurant['location'], $restaurant['cuisine_id'], $restaurant['id']);
-              array_push($found_restaurant, $restaurant);
-          }
-          return $found_restaurant;
+            $found_restaurant = null;
+            $returned = $GLOBALS['DB']->prepare("SELECT * FROM restaurantz WHERE id = :id;");
+            $returned->bindParam(':id', $id, PDO::PARAM_STR);
+            $returned->execute();
+            $result = $returned->fetch(PDO::FETCH_ASSOC);
+            if($result['id'] == $id ){
+              $found_restaurant = new Restaurant($result['name'], $result['location'], $result['cuisine_id']);
+              return $found_restaurant;
+            }
         }
     }
-
-
-
-
-
 ?>

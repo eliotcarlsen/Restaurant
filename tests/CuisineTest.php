@@ -48,6 +48,33 @@
         $result = Cuisine::getAll();
         $this->assertEquals([], $result);
      }
+
+     function test_find()
+     {
+       $cuisine = new Cuisine("american");
+       $cuisine->save();
+       $cuisine_id = $cuisine->getId();
+
+       $cuisine2 = new Cuisine("french");
+       $cuisine2->save();
+       $cuisine_id2 = $cuisine2->getId();
+
+       $cuisine3 = new Cuisine("mexican");
+       $cuisine3->save();
+       $cuisine_id3 = $cuisine3->getId();
+
+
+       $restaurant1 = new Restaurant("TacoBell", "123", $cuisine_id);
+       $restaurant1->save();
+       $restaurant2 = new Restaurant("El Burro", "456", $cuisine_id2);
+       $restaurant2->save();
+       $restaurant3 = new Restaurant("McDs", "678", $cuisine_id3);
+       $restaurant3->save();
+       $results = Cuisine::find($cuisine_id2);
+
+       $this->assertEquals($cuisine2, $results);
+
+     }
    }
 
 ?>
